@@ -78,6 +78,7 @@ fun GameScreen(gameViewModel:GameViewModel= viewModel()) {
             onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
             onKeyboardDone = { gameViewModel.checkGuess()},
             isGuessWrong = gameUiState.isGuessedWordWrong,
+            wordCount = gameUiState.currentWordCount,
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
@@ -104,7 +105,9 @@ fun GameScreen(gameViewModel:GameViewModel= viewModel()) {
             }
 
             OutlinedButton(
-                onClick = { },
+                onClick = {
+                          gameViewModel.skipWord()
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -114,7 +117,12 @@ fun GameScreen(gameViewModel:GameViewModel= viewModel()) {
             }
         }
 
-        GameStatus(score = 0, modifier = Modifier.padding(20.dp))
+        GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
+    }
+    Column {
+        if (gameUiState.isGameOver){
+            FinalScoreDialog(score = gameUiState.score, onPlayAgain = { /*TODO*/ gameViewModel.resetGame() })
+        }
     }
 }
 
@@ -138,9 +146,9 @@ fun GameLayout(
                onUserGuessChanged: (String) -> Unit,
                onKeyboardDone: () -> Unit,
                 isGuessWrong: Boolean,
+                wordCount: Int,
                modifier: Modifier = Modifier) {
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
-
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
@@ -156,7 +164,7 @@ fun GameLayout(
                     .background(colorScheme.surfaceTint)
                     .padding(horizontal = 10.dp, vertical = 4.dp)
                     .align(alignment = Alignment.End),
-                text = stringResource(R.string.word_count, 0),
+                text = stringResource(R.string.word_count,wordCount),
                 style = typography.titleMedium,
                 color = colorScheme.onPrimary
             )
@@ -207,7 +215,6 @@ private fun FinalScoreDialog(
     modifier: Modifier = Modifier
 ) {
     val activity = (LocalContext.current as Activity)
-
     AlertDialog(
         onDismissRequest = {
             // Dismiss the dialog when the user clicks outside the dialog or on the back
